@@ -1,0 +1,303 @@
+/* =============================================
+   Dashboard.css — MarsaBot Factory
+   Palette: Bleu Royal #003882 | Bleu Ciel #0099cc
+   ============================================= */
+
+.db-root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ── En-tête de page ── */
+.db-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.db-title {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #003882;
+  letter-spacing: -0.02em;
+}
+
+.db-subtitle {
+  margin: 0;
+  color: #5b7a99;
+  font-size: 0.92rem;
+}
+
+.db-refresh-btn {
+  padding: 8px 18px;
+  border: 1.5px solid #c8d8e8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #003882;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.db-refresh-btn:hover:not(:disabled) {
+  background: #003882;
+  border-color: #003882;
+  color: #ffffff;
+}
+
+.db-refresh-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Bannière d'erreur ── */
+.db-error {
+  padding: 12px 16px;
+  border-radius: 6px;
+  background: #fff2f2;
+  border: 1px solid #ffcdd2;
+  color: #b71c1c;
+  font-size: 0.875rem;
+}
+
+/* ── Grille 2 colonnes ── */
+.db-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Panneaux ── */
+.db-panel {
+  background: #ffffff;
+  border: 1px solid #dce8f4;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 56, 130, 0.06);
+}
+
+.db-panel h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  color: #003882;
+}
+
+.db-panel p {
+  margin: 0 0 20px;
+  color: #5b7a99;
+  font-size: 0.9rem;
+}
+
+/* En-tête de panneau avec badge */
+.panel-header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.panel-header-inline p {
+  margin-bottom: 0;
+}
+
+/* ── Formulaire ── */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1c3d6b;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 13px;
+  border: 1.5px solid #c8d8e8;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #0d253f;
+  background: #f8fbff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9ab0c8;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: #0099cc;
+  box-shadow: 0 0 0 3px rgba(0, 153, 204, 0.15);
+  background: #ffffff;
+}
+
+.field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* ── Bouton principal ── */
+.primary-button {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+  background: #003882;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.97rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #0099cc;
+  box-shadow: 0 4px 14px rgba(0, 153, 204, 0.28);
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Panneau bots ── */
+.db-bots-panel {
+  min-height: 200px;
+}
+
+/* ── Grille de bots ── */
+.bots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* ── Carte bot ── */
+.bot-card {
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #dce8f4;
+  box-shadow: 0 1px 4px rgba(0, 56, 130, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.18s ease;
+}
+
+.bot-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 56, 130, 0.10);
+}
+
+.bot-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.bot-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #003882;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.badge.actif {
+  background: #e0f7ee;
+  color: #00703c;
+}
+
+.badge.inactif {
+  background: #e8eef5;
+  color: #4a6582;
+}
+
+.bot-desc {
+  margin: 0;
+  color: #5b7a99;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.bot-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #345270;
+}
+
+.bot-date {
+  font-size: 0.8rem;
+  color: #8aa5bf;
+  margin-top: auto;
+}
+
+/* ── État vide ── */
+.empty-state {
+  margin-top: 16px;
+  padding: 24px;
+  border-radius: 8px;
+  background: #f5f9fd;
+  color: #6b8aaa;
+  border: 1px dashed #c0d5e8;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .db-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .db-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .db-refresh-btn {
+    width: 100%;
+  }
+}
