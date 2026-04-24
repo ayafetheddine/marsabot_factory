@@ -1,16 +1,16 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
+import KnowledgeBase from './components/KnowledgeBase';
 import Login from './components/Login';
+import Settings from './components/Settings';
 import AppShell from './components/layout/AppShell';
 import './App.css';
 
-function ProtectedRoute() {
+function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
 
   return token ? (
-    <AppShell>
-      <Dashboard />
-    </AppShell>
+    <AppShell>{children}</AppShell>
   ) : (
     <Navigate to="/login" replace />
   );
@@ -27,7 +27,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginRoute />} />
-        <Route path="/" element={<ProtectedRoute />} />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/knowledge" element={<ProtectedRoute><KnowledgeBase /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
