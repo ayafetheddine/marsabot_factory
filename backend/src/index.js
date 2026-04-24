@@ -6,6 +6,7 @@ require('dotenv').config();
 const { testConnection } = require('./config/db');
 const botRoutes = require('./routes/botRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const knowledgeRoutes = require('./routes/knowledgeRoutes');
 const authMiddleware = require('./middlewares/authMiddleware');
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/bots', authMiddleware, botRoutes);
+app.use('/api/knowledge', authMiddleware, knowledgeRoutes);
 
 // Route de test
 app.get('/api/health', (_req, res) => {

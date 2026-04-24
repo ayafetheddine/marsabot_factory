@@ -32,3 +32,18 @@ export function getBots() {
 export function createBot(botData) {
   return api.post('/bots', botData);
 }
+
+export function uploadKnowledgeFile(botId, file) {
+  const formData = new FormData();
+  formData.append('botId', botId);
+  formData.append('file', file);
+  return api.post('/knowledge/upload', formData);
+}
+
+export function getBotDocuments(botId) {
+  return api.get(`/knowledge/${botId}/documents`);
+}
+
+export function deleteBotDocument(botId, docId) {
+  return api.delete(`/knowledge/${botId}/documents/${docId}`);
+}

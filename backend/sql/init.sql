@@ -55,6 +55,24 @@ CREATE TABLE IF NOT EXISTS bot_documents (
 
 
 -- -----------------------------------------
+-- Table : documents  (remplace bot_documents)
+-- -----------------------------------------
+CREATE TABLE IF NOT EXISTS documents (
+  id                    INT           AUTO_INCREMENT PRIMARY KEY,
+  bot_id                INT           NOT NULL,
+  nom_original          VARCHAR(255)  NOT NULL,
+  nom_fichier_genere    VARCHAR(255)  NOT NULL,
+  chemin                VARCHAR(500)  NOT NULL,
+  taille                INT           NOT NULL,
+  date_ajout            TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_doc_bot
+    FOREIGN KEY (bot_id) REFERENCES bots(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------
 -- Table : admins
 -- -----------------------------------------
 CREATE TABLE IF NOT EXISTS admins (

@@ -1,0 +1,349 @@
+/* =============================================
+   KnowledgeBase.css — MarsaBot Factory
+   Palette: Bleu Royal #003882 | Bleu Ciel #0099cc
+   ============================================= */
+
+.kb-root {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ── En-tête ── */
+.kb-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kb-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #003882;
+  letter-spacing: -0.02em;
+}
+
+.kb-subtitle {
+  margin: 0;
+  color: #5b7a99;
+  font-size: 0.92rem;
+}
+
+/* ── Sélecteur de bot ── */
+.kb-bot-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kb-bot-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1c3d6b;
+}
+
+.kb-bot-select {
+  width: 100%;
+  max-width: 480px;
+  padding: 10px 14px;
+  border: 1.5px solid #c8d8e8;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #0d253f;
+  background: #f8fbff;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230099cc' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
+
+.kb-bot-select:focus {
+  outline: none;
+  border-color: #0099cc;
+  box-shadow: 0 0 0 3px rgba(0, 153, 204, 0.15);
+  background-color: #ffffff;
+}
+
+/* ── Onglets ── */
+.kb-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #dce8f4;
+}
+
+.kb-tab {
+  padding: 10px 24px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #7a98b5;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+}
+
+.kb-tab:hover {
+  color: #003882;
+}
+
+.kb-tab--active {
+  color: #003882;
+  border-bottom-color: #003882;
+}
+
+/* ── Formulaire API ── */
+.kb-api-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: #f8fbff;
+  border: 1px solid #dce8f4;
+  border-radius: 12px;
+}
+
+.kb-api-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kb-api-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1c3d6b;
+}
+
+.kb-api-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 13px;
+  border: 1.5px solid #c8d8e8;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #0d253f;
+  background: #ffffff;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.kb-api-input::placeholder { color: #9ab0c8; }
+
+.kb-api-input:focus {
+  outline: none;
+  border-color: #0099cc;
+  box-shadow: 0 0 0 3px rgba(0, 153, 204, 0.15);
+}
+
+/* ── Zone Drag & Drop ── */
+.kb-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 56px 32px;
+  border: 2px dashed #0099cc;
+  border-radius: 12px;
+  background: #f8fbff;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  text-align: center;
+}
+
+.kb-dropzone:hover:not(.kb-dropzone--locked),
+.kb-dropzone--over {
+  background: #e8f5fc;
+  border-color: #003882;
+}
+
+.kb-dropzone--locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kb-dropzone-warning {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #b05a00;
+}
+
+.kb-browse-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  background: #7a98b5;
+}
+
+.kb-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #e0f0fa;
+}
+
+.kb-dropzone-icon svg {
+  color: #0099cc;
+}
+
+.kb-dropzone-text {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1c3d6b;
+}
+
+.kb-dropzone-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7a98b5;
+}
+
+.kb-browse-btn {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 6px;
+  background: #003882;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.kb-browse-btn:hover {
+  background: #0099cc;
+  box-shadow: 0 4px 14px rgba(0, 153, 204, 0.28);
+  transform: translateY(-1px);
+}
+
+/* ── Section documents indexés ── */
+.kb-docs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kb-docs-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #003882;
+}
+
+.kb-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Carte document ── */
+.kb-doc-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  background: #ffffff;
+  border: 1px solid #dce8f4;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 56, 130, 0.05);
+  transition: box-shadow 0.18s ease;
+}
+
+.kb-doc-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 56, 130, 0.10);
+}
+
+.kb-doc-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+}
+
+.kb-doc-icon.pdf  { background: #fff0f0; color: #c62828; }
+.kb-doc-icon.csv  { background: #f0fff4; color: #2e7d32; }
+.kb-doc-icon.xlsx { background: #f0f9ff; color: #0277bd; }
+
+.kb-doc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.kb-doc-name {
+  margin: 0 0 3px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0d253f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kb-doc-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #7a98b5;
+}
+
+.kb-doc-delete {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid #e0e8f0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ab0c8;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.kb-doc-delete:hover {
+  background: #fff0f0;
+  border-color: #ffcdd2;
+  color: #c62828;
+}
+
+/* ── État vide ── */
+.kb-empty {
+  padding: 32px;
+  text-align: center;
+  color: #7a98b5;
+  font-size: 0.9rem;
+  background: #f8fbff;
+  border-radius: 8px;
+  border: 1px dashed #c8d8e8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .kb-dropzone {
+    padding: 36px 20px;
+  }
+
+  .kb-doc-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+}
