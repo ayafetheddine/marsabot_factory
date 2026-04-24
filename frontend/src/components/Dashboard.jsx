@@ -107,24 +107,24 @@ function Dashboard() {
             </div>
 
             <div className="field">
+              <label htmlFor="specialite_domaine">Domaine</label>
+              <input
+                id="specialite_domaine"
+                name="specialite_domaine"
+                type="text"
+                placeholder="Ex: Logistique, Support, Tracking..."
+                value={form.specialite_domaine}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
               <label htmlFor="description">Description</label>
               <textarea
                 id="description"
                 name="description"
                 placeholder="Décrivez le rôle métier du bot..."
                 value={form.description}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="specialite_domaine">Spécialité / Domaine</label>
-              <input
-                id="specialite_domaine"
-                name="specialite_domaine"
-                type="text"
-                placeholder="Ex: Support, logistique, commercial"
-                value={form.specialite_domaine}
                 onChange={handleChange}
               />
             </div>
