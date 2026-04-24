@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { deleteBotDocument, getBotDocuments, getBots, uploadKnowledgeFile } from '../services/api';
+import { addBotApiSource, deleteBotApiSource, deleteBotDocument, getBotApiSources, getBotDocuments, getBots, uploadKnowledgeFile } from '../services/api';
 import './KnowledgeBase.css';
 
 /* ── Icône nuage upload ── */
@@ -55,6 +55,18 @@ function IconTrash() {
   );
 }
 
+/* ── Icône globe (source API) ── */
+function IconGlobe() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
+
 /* ── Utilitaires ── */
 function formatSize(bytes) {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
@@ -91,6 +103,7 @@ function KnowledgeBase() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
+  const [apiSources, setApiSources] = useState([]);
   const [apiUrl, setApiUrl] = useState('');
   const fileInputRef = useRef(null);
 
@@ -101,10 +114,13 @@ function KnowledgeBase() {
   }, []);
 
   const fetchDocuments = () => {
-    if (!selectedBotId) { setDocuments([]); return; }
+    if (!selectedBotId) { setDocuments([]); setApiSources([]); return; }
     getBotDocuments(selectedBotId)
       .then(({ data }) => setDocuments(data.data || []))
       .catch(() => setDocuments([]));
+    getBotApiSources(selectedBotId)
+      .then(({ data }) => setApiSources(data.data || []))
+      .catch(() => setApiSources([]));
   };
 
   useEffect(() => {
@@ -115,6 +131,31 @@ function KnowledgeBase() {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible.')) return;
     try {
       await deleteBotDocument(selectedBotId, docId);
+      fetchDocuments();
+    } catch (err) {
+      const message = err.response?.data?.message || 'Erreur lors de la suppression.';
+      alert(message);
+    }
+  };
+
+  const handleAddApiSource = async () => {
+    if (!selectedBotId) { alert('Veuillez sélectionner un bot.'); return; }
+    if (!apiUrl.trim()) { alert('Veuillez entrer une URL.'); return; }
+    try {
+      await addBotApiSource(selectedBotId, apiUrl.trim());
+      alert('Source API connectée avec succès !');
+      setApiUrl('');
+      fetchDocuments();
+    } catch (err) {
+      const message = err.response?.data?.message || 'Erreur lors de la connexion.';
+      alert(message);
+    }
+  };
+
+  const handleDeleteApiSource = async (sourceId) => {
+    if (!window.confirm('Supprimer cette source API ? Cette action est irréversible.')) return;
+    try {
+      await deleteBotApiSource(selectedBotId, sourceId);
       fetchDocuments();
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur lors de la suppression.';
@@ -253,25 +294,25 @@ function KnowledgeBase() {
               onChange={(e) => setApiUrl(e.target.value)}
             />
           </div>
-          <button type="button" className="kb-browse-btn">
+          <button type="button" className="kb-browse-btn" onClick={handleAddApiSource}>
             Connecter la source
           </button>
         </div>
       )}
 
-      {/* ── Documents indexés (dynamique) ── */}
+      {/* ── Sources de connaissances ── */}
       <div className="kb-docs-section">
-        <h2 className="kb-docs-title">Documents indexés</h2>
+        <h2 className="kb-docs-title">Sources de connaissances</h2>
         {!selectedBotId ? (
-          <div className="kb-empty">Sélectionnez un bot pour voir ses documents.</div>
-        ) : documents.length === 0 ? (
-          <div className="kb-empty">Aucun document indexé pour le moment.</div>
+          <div className="kb-empty">Sélectionnez un bot pour voir ses sources.</div>
+        ) : documents.length === 0 && apiSources.length === 0 ? (
+          <div className="kb-empty">Aucune source indexée pour le moment.</div>
         ) : (
           <ul className="kb-docs-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {documents.map((doc) => {
               const type = getFileType(doc.nom_original);
               return (
-                <li key={doc.id} className="kb-doc-card">
+                <li key={`doc-${doc.id}`} className="kb-doc-card">
                   <DocIcon type={type} />
                   <div className="kb-doc-info">
                     <p className="kb-doc-name">{doc.nom_original}</p>
@@ -289,6 +330,26 @@ function KnowledgeBase() {
                 </li>
               );
             })}
+            {apiSources.map((source) => (
+              <li key={`api-${source.id}`} className="kb-doc-card">
+                <div className="kb-doc-icon api">
+                  <IconGlobe />
+                </div>
+                <div className="kb-doc-info">
+                  <p className="kb-doc-name">{source.url}</p>
+                  <p className="kb-doc-meta">Connectée le {formatDate(source.date_ajout)}</p>
+                </div>
+                <button
+                  type="button"
+                  className="kb-doc-delete"
+                  title="Supprimer la source API"
+                  aria-label={`Supprimer ${source.url}`}
+                  onClick={() => handleDeleteApiSource(source.id)}
+                >
+                  <IconTrash />
+                </button>
+              </li>
+            ))}
           </ul>
         )}
       </div>

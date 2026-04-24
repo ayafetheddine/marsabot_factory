@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { findByBotAndName, createDocument, getDocumentsByBot, getDocumentById, deleteDocument } = require('../models/documentModel');
+const { addApiSource, getApiSourcesByBot, deleteApiSource } = require('../models/apiSourceModel');
 
 async function uploadFile(req, res) {
   try {
@@ -84,5 +85,42 @@ async function deleteFile(req, res) {
   }
 }
 
-module.exports = { uploadFile, getDocuments, deleteFile };
+async function addApi(req, res) {
+  try {
+    const { botId } = req.params;
+    const { url } = req.body;
+    if (!url || !url.trim()) {
+      return res.status(400).json({ success: false, message: "L'URL est requise." });
+    }
+    const source = await addApiSource(botId, url.trim());
+    return res.status(201).json({ success: true, data: source });
+  } catch (error) {
+    console.error('Erreur addApi :', error.message);
+    return res.status(500).json({ success: false, message: "Erreur lors de l'ajout de la source API." });
+  }
+}
+
+async function getApis(req, res) {
+  try {
+    const { botId } = req.params;
+    const sources = await getApiSourcesByBot(botId);
+    return res.json({ success: true, data: sources });
+  } catch (error) {
+    console.error('Erreur getApis :', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur lors de la récupération des sources API.' });
+  }
+}
+
+async function deleteApi(req, res) {
+  try {
+    const { sourceId } = req.params;
+    await deleteApiSource(sourceId);
+    return res.json({ success: true, message: 'Source API supprimée avec succès.' });
+  } catch (error) {
+    console.error('Erreur deleteApi :', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur lors de la suppression.' });
+  }
+}
+
+module.exports = { uploadFile, getDocuments, deleteFile, addApi, getApis, deleteApi };
 

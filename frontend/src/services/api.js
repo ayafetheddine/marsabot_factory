@@ -47,3 +47,15 @@ export function getBotDocuments(botId) {
 export function deleteBotDocument(botId, docId) {
   return api.delete(`/knowledge/${botId}/documents/${docId}`);
 }
+
+export function addBotApiSource(botId, url) {
+  return api.post(`/knowledge/${botId}/api-sources`, { url });
+}
+
+export function getBotApiSources(botId) {
+  return api.get(`/knowledge/${botId}/api-sources`);
+}
+
+export function deleteBotApiSource(botId, sourceId) {
+  return api.delete(`/knowledge/${botId}/api-sources/${sourceId}`);
+}

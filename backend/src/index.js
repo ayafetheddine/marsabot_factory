@@ -4,6 +4,7 @@ require('dotenv').config();
 
 
 const { testConnection } = require('./config/db');
+const { initApiSourceTable } = require('./models/apiSourceModel');
 const botRoutes = require('./routes/botRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const knowledgeRoutes = require('./routes/knowledgeRoutes');
@@ -42,4 +43,5 @@ app.listen(PORT, async () => {
   console.log('└──────────────────────────────────────────┘');
 
   await testConnection();
+  await initApiSourceTable();
 });

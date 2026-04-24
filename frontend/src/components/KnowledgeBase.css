@@ -282,6 +282,7 @@
 .kb-doc-icon.pdf  { background: #fff0f0; color: #c62828; }
 .kb-doc-icon.csv  { background: #f0fff4; color: #2e7d32; }
 .kb-doc-icon.xlsx { background: #f0f9ff; color: #0277bd; }
+.kb-doc-icon.api  { background: #eef2ff; color: #003882; }
 
 .kb-doc-info {
   flex: 1;

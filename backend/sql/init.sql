@@ -73,6 +73,20 @@ CREATE TABLE IF NOT EXISTS documents (
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------
+-- Table : api_sources
+-- -----------------------------------------
+CREATE TABLE IF NOT EXISTS api_sources (
+  id         INT            AUTO_INCREMENT PRIMARY KEY,
+  bot_id     INT            NOT NULL,
+  url        VARCHAR(2048)  NOT NULL,
+  date_ajout TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_apisource_bot
+    FOREIGN KEY (bot_id) REFERENCES bots(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------
 -- Table : admins
 -- -----------------------------------------
 CREATE TABLE IF NOT EXISTS admins (

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
-const { uploadFile, getDocuments, deleteFile } = require('../controllers/knowledgeController');
+const { uploadFile, getDocuments, deleteFile, addApi, getApis, deleteApi } = require('../controllers/knowledgeController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 // POST /api/knowledge/upload
@@ -12,5 +12,14 @@ router.get('/:botId/documents', getDocuments);
 
 // DELETE /api/knowledge/:botId/documents/:docId
 router.delete('/:botId/documents/:docId', authMiddleware, deleteFile);
+
+// POST /api/knowledge/:botId/api-sources
+router.post('/:botId/api-sources', addApi);
+
+// GET /api/knowledge/:botId/api-sources
+router.get('/:botId/api-sources', getApis);
+
+// DELETE /api/knowledge/:botId/api-sources/:sourceId
+router.delete('/:botId/api-sources/:sourceId', authMiddleware, deleteApi);
 
 module.exports = router;
