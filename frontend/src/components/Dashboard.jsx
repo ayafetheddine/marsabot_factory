@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createBot, getBots } from '../services/api';
+import { createBot, getBots, getWhatsAppQrCode } from '../services/api';
 import './Dashboard.css';
 
 const initialForm = {
@@ -10,6 +10,15 @@ const initialForm = {
   numero_telephone: '',
 };
 
+const initialQrModal = {
+  open: false,
+  loading: false,
+  botId: null,
+  botName: '',
+  qrBase64: null,
+  error: null,
+};
+
 function Dashboard() {
   const navigate = useNavigate();
   const [bots, setBots] = useState([]);
@@ -17,6 +26,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
+  const [qrModal, setQrModal] = useState(initialQrModal);
 
   const fetchBots = async () => {
     try {
@@ -40,6 +50,45 @@ function Dashboard() {
   useEffect(() => {
     fetchBots();
   }, []);
+
+  const handleGenerateQr = async (bot) => {
+    setQrModal({ open: true, loading: true, botId: bot.id, botName: bot.nom, qrBase64: null, error: null });
+    try {
+      const { data } = await getWhatsAppQrCode(bot.id);
+      setQrModal((prev) => ({ ...prev, loading: false, qrBase64: data.qrCodeBase64 }));
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Impossible de générer le QR Code.';
+      setQrModal((prev) => ({ ...prev, loading: false, error: message }));
+    }
+  };
+
+  const handleDownloadQr = () => {
+    if (!qrModal.qrBase64) return;
+    const a = document.createElement('a');
+    a.href = qrModal.qrBase64;
+    a.download = `QRCode_WhatsApp_${qrModal.botName.replace(/\s+/g, '_')}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleShareQr = async () => {
+    if (!qrModal.qrBase64) return;
+    try {
+      const response = await fetch(qrModal.qrBase64);
+      const blob = await response.blob();
+      const file = new File([blob], `QRCode_${qrModal.botName}.png`, { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: `QR Code WhatsApp — ${qrModal.botName}` });
+        return;
+      }
+      // Fallback : copie dans le presse-papier
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      alert('QR Code copié dans le presse-papier !');
+    } catch (err) {
+      alert('Le partage ou la copie n\'est pas supporté sur ce navigateur.');
+    }
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -176,12 +225,79 @@ function Dashboard() {
                   <div className="bot-date">
                     Créé le {new Date(bot.date_creation).toLocaleDateString('fr-FR')}
                   </div>
+
+                  <button
+                    type="button"
+                    className="bot-qr-btn"
+                    onClick={() => handleGenerateQr(bot)}
+                  >
+                    📱 Générer le QR Code WhatsApp
+                  </button>
                 </article>
               ))}
             </div>
           )}
         </section>
       </section>
+
+      {/* ── Modale QR Code WhatsApp ── */}
+      {qrModal.open && (
+        <div className="qr-overlay" onClick={() => setQrModal(initialQrModal)}>
+          <div className="qr-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="qr-modal-header">
+              <h3 className="qr-modal-title">QR Code WhatsApp — {qrModal.botName}</h3>
+              <button
+                type="button"
+                className="qr-close-btn"
+                aria-label="Fermer"
+                onClick={() => setQrModal(initialQrModal)}
+              >✕</button>
+            </div>
+
+            <div className="qr-modal-body">
+              {qrModal.loading && (
+                <div className="qr-loading">
+                  <div className="qr-spinner" />
+                  <p>Démarrage de l'instance WhatsApp…</p>
+                  <p className="qr-loading-hint">Cela peut prendre jusqu'à 60 secondes.</p>
+                </div>
+              )}
+
+              {qrModal.error && (
+                <div className="qr-error">
+                  <p>❌ {qrModal.error}</p>
+                  <button
+                    type="button"
+                    className="bot-qr-btn"
+                    onClick={() => handleGenerateQr({ id: qrModal.botId, nom: qrModal.botName })}
+                  >Réessayer</button>
+                </div>
+              )}
+
+              {qrModal.qrBase64 && (
+                <>
+                  <p className="qr-instruction">
+                    Ouvrez WhatsApp sur le téléphone du bot → <strong>Appareils connectés</strong> → <strong>Connecter un appareil</strong>
+                  </p>
+                  <img
+                    src={qrModal.qrBase64}
+                    alt="QR Code WhatsApp"
+                    className="qr-image"
+                  />
+                  <div className="qr-actions">
+                    <button type="button" className="qr-action-btn qr-download" onClick={handleDownloadQr}>
+                      📥 Télécharger
+                    </button>
+                    <button type="button" className="qr-action-btn qr-share" onClick={handleShareQr}>
+                      🔗 Partager
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

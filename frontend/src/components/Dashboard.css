@@ -272,6 +272,191 @@
   margin-top: auto;
 }
 
+/* ── Bouton QR sur chaque carte bot ── */
+.bot-qr-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid #0099cc;
+  border-radius: 6px;
+  background: #f0faff;
+  color: #003882;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+  margin-top: auto;
+}
+
+.bot-qr-btn:hover {
+  background: #0099cc;
+  color: #ffffff;
+}
+
+/* ── Overlay modal QR ── */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 20, 50, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.qr-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 30, 80, 0.22);
+  overflow: hidden;
+}
+
+.qr-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #dce8f4;
+}
+
+.qr-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #003882;
+}
+
+.qr-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #7a99b8;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.qr-close-btn:hover {
+  background: #f0f5fa;
+  color: #003882;
+}
+
+.qr-modal-body {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-height: 200px;
+  justify-content: center;
+}
+
+/* ── Chargement ── */
+.qr-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: #345270;
+  font-size: 0.9rem;
+}
+
+.qr-loading p {
+  margin: 0;
+}
+
+.qr-loading-hint {
+  color: #8aa5bf;
+  font-size: 0.82rem !important;
+}
+
+.qr-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #dce8f4;
+  border-top-color: #0099cc;
+  border-radius: 50%;
+  animation: qr-spin 0.8s linear infinite;
+}
+
+@keyframes qr-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Erreur ── */
+.qr-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: #b71c1c;
+  font-size: 0.9rem;
+}
+
+.qr-error p { margin: 0; }
+
+/* ── Image QR ── */
+.qr-instruction {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #5b7a99;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.qr-image {
+  width: 220px;
+  height: 220px;
+  border-radius: 8px;
+  border: 2px solid #dce8f4;
+}
+
+/* ── Boutons télécharger / partager ── */
+.qr-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.qr-action-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.qr-download {
+  background: #003882;
+  color: #ffffff;
+  border: none;
+}
+
+.qr-download:hover {
+  background: #0055b3;
+}
+
+.qr-share {
+  background: #ffffff;
+  color: #003882;
+  border: 1.5px solid #c8d8e8;
+}
+
+.qr-share:hover {
+  background: #f0f5fa;
+  border-color: #0099cc;
+}
+
 /* ── État vide ── */
 .empty-state {
   margin-top: 16px;
