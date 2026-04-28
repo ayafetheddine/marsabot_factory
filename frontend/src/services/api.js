@@ -59,3 +59,11 @@ export function getBotApiSources(botId) {
 export function deleteBotApiSource(botId, sourceId) {
   return api.delete(`/knowledge/${botId}/api-sources/${sourceId}`);
 }
+
+export function getSystemSettings() {
+  return api.get('/settings');
+}
+
+export function updateSystemSettings(settingsObject) {
+  return api.put('/settings', settingsObject);
+}

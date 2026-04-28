@@ -5,9 +5,11 @@ require('dotenv').config();
 
 const { testConnection } = require('./config/db');
 const { initApiSourceTable } = require('./models/apiSourceModel');
+const { initSettingsTable } = require('./models/settingModel');
 const botRoutes = require('./routes/botRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const knowledgeRoutes = require('./routes/knowledgeRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 const authMiddleware = require('./middlewares/authMiddleware');
 
 const app = express();
@@ -20,6 +22,7 @@ app.use(express.json());
 app.use('/api/admin', adminRoutes);
 app.use('/api/bots', authMiddleware, botRoutes);
 app.use('/api/knowledge', authMiddleware, knowledgeRoutes);
+app.use('/api/settings', authMiddleware, settingsRoutes);
 
 // Route de test
 app.get('/api/health', (_req, res) => {
@@ -44,4 +47,5 @@ app.listen(PORT, async () => {
 
   await testConnection();
   await initApiSourceTable();
+  await initSettingsTable();
 });
