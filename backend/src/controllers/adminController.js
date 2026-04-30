@@ -34,7 +34,7 @@ async function createDefaultAdmin(req, res) {
       return res.json({ success: false, message: 'Un admin existe déjà.' });
     }
     const email = 'admin@marsamaroc.ma';
-    const password = process.env.DEFAULT_ADMIN_PASSWORD or 'change_me_in_production';
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || 'change_me_in_production';
     const nom = 'Administrateur';
     const password_hash = await bcrypt.hash(password, 10);
     await pool.execute('INSERT INTO admins (email, password_hash, nom) VALUES (?, ?, ?)', [email, password_hash, nom]);
