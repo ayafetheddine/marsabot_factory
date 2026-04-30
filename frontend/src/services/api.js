@@ -71,3 +71,7 @@ export function updateSystemSettings(settingsObject) {
 export function getWhatsAppQrCode(botId) {
   return api.get(`/bots/${botId}/whatsapp/qr`, { timeout: 65000 });
 }
+
+export function updateBot(id, botData) {
+  return api.put(`/bots/${id}`, botData);
+}

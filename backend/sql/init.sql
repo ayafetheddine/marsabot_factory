@@ -12,13 +12,14 @@ USE marsabot_db;
 -- Table : bots
 -- -----------------------------------------
 CREATE TABLE IF NOT EXISTS bots (
-  id                INT           AUTO_INCREMENT PRIMARY KEY,
-  nom               VARCHAR(255)  NOT NULL,
-  description       TEXT,
-  specialite_domaine VARCHAR(255),
-  numero_telephone  VARCHAR(20),
-  statut            ENUM('actif', 'inactif') NOT NULL DEFAULT 'inactif',
-  date_creation     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+  id                        INT           AUTO_INCREMENT PRIMARY KEY,
+  nom                       VARCHAR(255)  NOT NULL,
+  description               TEXT,
+  specialite_domaine        VARCHAR(255),
+  numero_telephone          VARCHAR(20),
+  statut                    ENUM('actif', 'inactif') NOT NULL DEFAULT 'inactif',
+  allow_general_knowledge   BOOLEAN       NOT NULL DEFAULT FALSE,
+  date_creation             DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------

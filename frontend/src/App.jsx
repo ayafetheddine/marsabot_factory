@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Dashboard from './components/Dashboard';
 import KnowledgeBase from './components/KnowledgeBase';
 import Login from './components/Login';
@@ -25,6 +26,7 @@ function LoginRoute() {
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
       <Routes>
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

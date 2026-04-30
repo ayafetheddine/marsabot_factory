@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { addBotApiSource, deleteBotApiSource, deleteBotDocument, getBotApiSources, getBotDocuments, getBots, uploadKnowledgeFile } from '../services/api';
 import './KnowledgeBase.css';
 
@@ -127,57 +129,126 @@ function KnowledgeBase() {
     fetchDocuments();
   }, [selectedBotId]);
 
-  const handleDelete = async (docId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible.')) return;
-    try {
-      await deleteBotDocument(selectedBotId, docId);
-      fetchDocuments();
-    } catch (err) {
-      const message = err.response?.data?.message || 'Erreur lors de la suppression.';
-      alert(message);
-    }
+  const handleDelete = (docId) => {
+    toast((t) => (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#333' }}>
+          <strong>êtes-vous sûr de vouloir supprimer cet élément ?</strong><br/>
+          <span style={{ fontSize: '13px', color: '#666', marginTop: '4px', display: 'block' }}>Cette action est définitive et irréversible.</span>
+        </p>
+        <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteBotDocument(selectedBotId, docId);
+                fetchDocuments();
+                toast.success('Fichier supprimé !');
+              } catch (err) {
+                const message = err.response?.data?.message || 'Erreur lors de la suppression.';
+                toast.error(message);
+              }
+            }}
+            style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Supprimer
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            style={{ background: '#f1f3f5', color: '#333', border: 'none', padding: '8px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+          >
+            Annuler
+          </button>
+        </div>
+      </div>
+    ), { 
+      duration: Infinity, 
+      id: 'delete-confirm',
+      style: { 
+        minWidth: '350px', 
+        padding: '20px', 
+        borderRadius: '12px', 
+        boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+        border: '1px solid #e2e8f0',
+        marginTop: '30vh'
+      } 
+    });
   };
-
-  const handleAddApiSource = async () => {
-    if (!selectedBotId) { alert('Veuillez sélectionner un bot.'); return; }
-    if (!apiUrl.trim()) { alert('Veuillez entrer une URL.'); return; }
+const handleAddApiSource = async () => {
+    if (!selectedBotId) { toast.error('Veuillez sélectionner un bot.'); return; }
+    if (!apiUrl.trim()) { toast.error('Veuillez entrer une URL.'); return; }
     try {
       await addBotApiSource(selectedBotId, apiUrl.trim());
-      alert('Source API connectée avec succès !');
+      toast.success('Source API connectée avec succès !');
       setApiUrl('');
       fetchDocuments();
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur lors de la connexion.';
-      alert(message);
+      toast.error(message);
     }
   };
 
-  const handleDeleteApiSource = async (sourceId) => {
-    if (!window.confirm('Supprimer cette source API ? Cette action est irréversible.')) return;
-    try {
-      await deleteBotApiSource(selectedBotId, sourceId);
-      fetchDocuments();
-    } catch (err) {
-      const message = err.response?.data?.message || 'Erreur lors de la suppression.';
-      alert(message);
-    }
+  const handleDeleteApiSource = (sourceId) => {
+    toast((t) => (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#333' }}>
+          <strong>êtes-vous sûr de vouloir supprimer cet élément ?</strong><br/>
+          <span style={{ fontSize: '13px', color: '#666', marginTop: '4px', display: 'block' }}>Cette action est définitive et irréversible.</span>
+        </p>
+        <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteBotApiSource(selectedBotId, sourceId);
+                fetchDocuments();
+                toast.success('Source API supprimée !');
+              } catch (err) {
+                const message = err.response?.data?.message || 'Erreur lors de la suppression.';
+                toast.error(message);
+              }
+            }}
+            style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Supprimer
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            style={{ background: '#f1f3f5', color: '#333', border: 'none', padding: '8px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+          >
+            Annuler
+          </button>
+        </div>
+      </div>
+    ), { 
+      duration: Infinity, 
+      id: 'delete-confirm',
+      style: { 
+        minWidth: '350px', 
+        padding: '20px', 
+        borderRadius: '12px', 
+        boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+        border: '1px solid #e2e8f0',
+        marginTop: '30vh'
+      } 
+    });
   };
 
   const sendFile = async (file) => {
     setIsUploading(true);
     try {
       await uploadKnowledgeFile(selectedBotId, file);
-      alert('Fichier envoyé avec succès !');
+      toast.success('Fichier envoyé avec succès !');
       fetchDocuments();
     } catch (err) {
-      const message = err.response?.data?.message || 'Erreur lors de l\'envoi du fichier.';
-      alert(message);
+      const message = err.response?.data?.message || "Erreur lors de l'envoi du fichier.";
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }
   };
 
-  /* ── Handlers fichiers ── */
+  /* \u2500\u2500 Handlers fichiers \u2500\u2500 */
   const handleFileSelect = (event) => {
     const files = Array.from(event.target.files);
     files.forEach((file) => sendFile(file));
@@ -198,9 +269,37 @@ function KnowledgeBase() {
   };
   const handleDragLeave = () => setIsDragOver(false);
 
+  const botOptions = bots.map(bot => ({ value: bot.id, label: bot.nom }));
+  const selectedBotOption = botOptions.find(option => String(option.value) === String(selectedBotId)) || null;
+
+  const customSelectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      padding: '4px',
+      borderRadius: '8px',
+      borderColor: state.isFocused ? '#0284c7' : '#cbd5e1',
+      boxShadow: state.isFocused ? '0 0 0 1px #0284c7' : 'none',
+      '&:hover': { borderColor: '#0284c7' },
+      cursor: 'pointer'
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? '#0284c7' : state.isFocused ? '#f0f9ff' : 'white',
+      color: state.isSelected ? 'white' : '#333',
+      cursor: 'pointer',
+      padding: '10px 14px'
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+    })
+  };
+
   return (
     <div className="kb-root">
-      {/* ── En-tête ── */}
+      {/* \u2500\u2500 En-tête \u2500\u2500 */}
       <div className="kb-page-header">
         <h1 className="kb-title">Base de Connaissances</h1>
         <p className="kb-subtitle">
@@ -208,23 +307,21 @@ function KnowledgeBase() {
         </p>
       </div>
 
-      {/* ── Sélecteur de bot ── */}
+      {/* \u2500\u2500 Sélecteur de bot \u2500\u2500 */}
       <div className="kb-bot-selector">
-        <label htmlFor="kb-bot-select" className="kb-bot-label">Bot cible</label>
-        <select
-          id="kb-bot-select"
-          className="kb-bot-select"
-          value={selectedBotId}
-          onChange={(e) => setSelectedBotId(e.target.value)}
-        >
-          <option value="">— Sélectionnez le bot à configurer —</option>
-          {bots.map((bot) => (
-            <option key={bot.id} value={bot.id}>{bot.nom}</option>
-          ))}
-        </select>
+        <label className="kb-bot-label">Bot cible</label>
+        <Select
+          options={botOptions}
+          value={selectedBotOption}
+          styles={customSelectStyles}
+          placeholder="-- Sélectionnez le bot à configurer --"
+          noOptionsMessage={() => 'Aucun bot disponible'}
+          onChange={(selected) => setSelectedBotId(selected ? selected.value : '')}
+          isSearchable={false}
+        />
       </div>
 
-      {/* ── Onglets ── */}
+      {/* \u2500\u2500 Onglets \u2500\u2500 */}
       <div className="kb-tabs">
         <button
           type="button"
@@ -242,7 +339,7 @@ function KnowledgeBase() {
         </button>
       </div>
 
-      {/* ── Contenu onglet Fichiers ── */}
+      {/* \u2500\u2500 Contenu onglet Fichiers \u2500\u2500 */}
       {activeTab === 'files' && (
         <>
           <input
@@ -261,13 +358,13 @@ function KnowledgeBase() {
           >
             <div className="kb-dropzone-icon"><IconUpload /></div>
             {isUploading ? (
-              <p className="kb-dropzone-text">⏳ Envoi en cours...</p>
+              <p className="kb-dropzone-text">&#9203; Envoi en cours...</p>
             ) : selectedBotId ? (
               <p className="kb-dropzone-text">Glissez et déposez vos fichiers ici</p>
             ) : (
-              <p className="kb-dropzone-warning">⚠️ Veuillez d'abord sélectionner un bot à configurer</p>
+              <p className="kb-dropzone-warning">&#9888;&#65039; Veuillez d&apos;abord sélectionner un bot à configurer</p>
             )}
-            <p className="kb-dropzone-hint">PDF, TXT, Excel, CSV — 20 Mo max par fichier</p>
+            <p className="kb-dropzone-hint">PDF, TXT, Excel, CSV &#8212; 20 Mo max par fichier</p>
             <button
               type="button"
               className="kb-browse-btn"
@@ -282,9 +379,14 @@ function KnowledgeBase() {
 
       {/* ── Contenu onglet API ── */}
       {activeTab === 'api' && (
-        <div className="kb-api-form">
+        <div className={`kb-api-form${!selectedBotId ? ' kb-api-form--locked' : ''}`}>
+          {!selectedBotId && (
+            <p className="kb-dropzone-warning" style={{ marginBottom: '12px' }}>
+              ⚠️ Veuillez d&apos;abord sélectionner un bot à configurer
+            </p>
+          )}
           <div className="kb-api-field">
-            <label htmlFor="kb-api-url" className="kb-api-label">URL de l'API externe</label>
+            <label htmlFor="kb-api-url" className="kb-api-label">URL de l&apos;API externe</label>
             <input
               id="kb-api-url"
               type="url"
@@ -292,15 +394,16 @@ function KnowledgeBase() {
               placeholder="https://api.marsamaroc.ma/tracking..."
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
+              disabled={!selectedBotId}
             />
           </div>
-          <button type="button" className="kb-browse-btn" onClick={handleAddApiSource}>
+          <button type="button" className="kb-browse-btn" onClick={handleAddApiSource} disabled={!selectedBotId}>
             Connecter la source
           </button>
         </div>
       )}
 
-      {/* ── Sources de connaissances ── */}
+      {/* \u2500\u2500 Sources de connaissances \u2500\u2500 */}
       <div className="kb-docs-section">
         <h2 className="kb-docs-title">Sources de connaissances</h2>
         {!selectedBotId ? (

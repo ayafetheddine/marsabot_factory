@@ -111,6 +111,18 @@
   border-radius: 12px;
 }
 
+.kb-api-form--locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.kb-api-input:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
 .kb-api-field {
   display: flex;
   flex-direction: column;
@@ -297,6 +309,18 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.kb-doc-link {
+  display: block;
+  color: #003882;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.kb-doc-link:hover {
+  color: #0099cc;
+  text-decoration: underline;
 }
 
 .kb-doc-meta {

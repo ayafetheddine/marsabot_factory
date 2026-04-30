@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 
 const { testConnection } = require('./config/db');
 const { initApiSourceTable } = require('./models/apiSourceModel');
 const { initSettingsTable } = require('./models/settingModel');
+const { initDocumentsTable, initChunksTable } = require('./models/documentModel');
+const whatsappService = require('./services/whatsappService');
 const botRoutes = require('./routes/botRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const knowledgeRoutes = require('./routes/knowledgeRoutes');
@@ -17,6 +20,9 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Fichiers uploadés accessibles publiquement (lecture seule)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
 app.use('/api/admin', adminRoutes);
@@ -48,4 +54,7 @@ app.listen(PORT, async () => {
   await testConnection();
   await initApiSourceTable();
   await initSettingsTable();
+  await initDocumentsTable();
+  await initChunksTable();
+  await whatsappService.initializeActiveBots();
 });

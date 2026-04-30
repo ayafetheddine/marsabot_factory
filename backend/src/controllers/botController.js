@@ -4,11 +4,12 @@ const { initializeWhatsApp } = require('../services/whatsappService');
 // Créer un nouveau bot
 async function createBot(req, res) {
   try {
-    const { nom, description, specialite_domaine, numero_telephone } = req.body;
+    const { nom, description, specialite_domaine, numero_telephone, allow_general_knowledge } = req.body;
+    const allowKnowledge = allow_general_knowledge ? 1 : 0;
 
     const [result] = await pool.execute(
-      'INSERT INTO bots (nom, description, specialite_domaine, numero_telephone) VALUES (?, ?, ?, ?)',
-      [nom, description, specialite_domaine, numero_telephone]
+      'INSERT INTO bots (nom, description, specialite_domaine, numero_telephone, allow_general_knowledge) VALUES (?, ?, ?, ?, ?)',
+      [nom, description, specialite_domaine, numero_telephone, allowKnowledge]
     );
 
     const [rows] = await pool.execute('SELECT * FROM bots WHERE id = ?', [result.insertId]);
@@ -64,4 +65,28 @@ function generateQrCode(req, res) {
   }
 }
 
-module.exports = { createBot, getAllBots, generateQrCode };
+// Modifier un bot existant
+async function updateBot(req, res) {
+  try {
+    const { id } = req.params;
+    const { nom, description, specialite_domaine, numero_telephone, allow_general_knowledge } = req.body;
+    const allowKnowledge = allow_general_knowledge ? 1 : 0;
+
+    await pool.execute(
+      'UPDATE bots SET nom=?, description=?, specialite_domaine=?, numero_telephone=?, allow_general_knowledge=? WHERE id=?',
+      [nom, description, specialite_domaine, numero_telephone, allowKnowledge, id]
+    );
+
+    const [rows] = await pool.execute('SELECT * FROM bots WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Bot introuvable.' });
+    }
+
+    res.json({ success: true, data: rows[0] });
+  } catch (error) {
+    console.error('Erreur updateBot :', error.message);
+    res.status(500).json({ success: false, message: 'Erreur lors de la mise à jour du bot.' });
+  }
+}
+
+module.exports = { createBot, getAllBots, generateQrCode, updateBot };

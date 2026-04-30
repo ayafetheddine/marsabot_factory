@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createBot, getBots, getWhatsAppQrCode } from '../services/api';
+import { createBot, getBots, getWhatsAppQrCode, updateBot } from '../services/api';
 import './Dashboard.css';
 
 const initialForm = {
@@ -8,6 +8,7 @@ const initialForm = {
   description: '',
   specialite_domaine: '',
   numero_telephone: '',
+  allow_general_knowledge: false,
 };
 
 const initialQrModal = {
@@ -27,6 +28,7 @@ function Dashboard() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
   const [qrModal, setQrModal] = useState(initialQrModal);
+  const [editingBotId, setEditingBotId] = useState(null);
 
   const fetchBots = async () => {
     try {
@@ -90,9 +92,26 @@ function Dashboard() {
     }
   };
 
+  const handleEditBot = (bot) => {
+    setForm({
+      nom: bot.nom || '',
+      description: bot.description || '',
+      specialite_domaine: bot.specialite_domaine || '',
+      numero_telephone: bot.numero_telephone || '',
+      allow_general_knowledge: Boolean(bot.allow_general_knowledge),
+    });
+    setEditingBotId(bot.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setForm(initialForm);
+    setEditingBotId(null);
+  };
+
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSubmit = async (event) => {
@@ -101,7 +120,12 @@ function Dashboard() {
     setError('');
 
     try {
-      await createBot(form);
+      if (editingBotId !== null) {
+        await updateBot(editingBotId, form);
+        setEditingBotId(null);
+      } else {
+        await createBot(form);
+      }
       setForm(initialForm);
       await fetchBots();
     } catch (requestError) {
@@ -135,8 +159,8 @@ function Dashboard() {
         <section className="db-panel">
           <div className="panel-header-inline">
             <div>
-              <h2>Nouveau bot</h2>
-              <p>Créez un agent WhatsApp prêt à être configuré.</p>
+              <h2>{editingBotId ? 'Modifier le bot' : 'Nouveau bot'}</h2>
+              <p>{editingBotId ? 'Modifiez les informations du bot sélectionné.' : 'Créez un agent WhatsApp prêt à être configuré.'}</p>
             </div>
             <span className="badge inactif">Admin</span>
           </div>
@@ -190,9 +214,36 @@ function Dashboard() {
               />
             </div>
 
-            <button className="primary-button" type="submit" disabled={loading}>
-              {loading ? 'Création...' : 'Créer le bot'}
-            </button>
+            <div className="field field--toggle">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  name="allow_general_knowledge"
+                  className="toggle-input"
+                  checked={form.allow_general_knowledge}
+                  onChange={handleChange}
+                />
+                <span className="toggle-track">
+                  <span className="toggle-thumb" />
+                </span>
+                <span className="toggle-text">
+                  Autoriser les connaissances générales (LLM) si la réponse n&apos;est pas dans les documents
+                </span>
+              </label>
+            </div>
+
+            <div className="form-actions">
+              <button className="primary-button" type="submit" disabled={loading}>
+                {loading
+                  ? (editingBotId ? 'Mise à jour...' : 'Création...')
+                  : (editingBotId ? 'Mettre à jour le bot' : 'Créer le bot')}
+              </button>
+              {editingBotId && (
+                <button className="secondary-button" type="button" onClick={handleCancelEdit}>
+                  Annuler
+                </button>
+              )}
+            </div>
           </form>
         </section>
 
@@ -212,7 +263,9 @@ function Dashboard() {
                 <article key={bot.id} className="bot-card">
                   <div className="bot-card-header">
                     <span className="bot-name">{bot.nom}</span>
-                    <span className={`badge ${bot.statut}`}>{bot.statut}</span>
+                    <span className={`badge ${(bot.statut || 'inactif').toLowerCase()}`}>
+                      {(bot.statut || 'inactif').toUpperCase()}
+                    </span>
                   </div>
 
                   {bot.description ? <p className="bot-desc">{bot.description}</p> : null}
@@ -220,19 +273,31 @@ function Dashboard() {
                   <div className="bot-meta">
                     <span>Domaine: {bot.specialite_domaine || 'Non renseigné'}</span>
                     <span>WhatsApp: {bot.numero_telephone || 'Non renseigné'}</span>
+                    <span className={`bot-knowledge-badge ${bot.allow_general_knowledge ? 'allowed' : 'strict'}`}>
+                      {bot.allow_general_knowledge ? '🧠 LLM activé' : '🔒 Documents uniquement'}
+                    </span>
                   </div>
 
                   <div className="bot-date">
                     Créé le {new Date(bot.date_creation).toLocaleDateString('fr-FR')}
                   </div>
 
-                  <button
-                    type="button"
-                    className="bot-qr-btn"
-                    onClick={() => handleGenerateQr(bot)}
-                  >
-                    📱 Générer le QR Code WhatsApp
-                  </button>
+                  <div className="bot-card-actions">
+                    <button
+                      type="button"
+                      className="bot-edit-btn"
+                      onClick={() => handleEditBot(bot)}
+                    >
+                      ⚙️ Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="bot-qr-btn"
+                      onClick={() => handleGenerateQr(bot)}
+                    >
+                      📱 Générer le QR Code WhatsApp
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>

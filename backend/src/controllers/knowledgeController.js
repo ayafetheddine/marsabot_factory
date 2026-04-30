@@ -1,6 +1,8 @@
 const fs = require('fs');
+const { PDFParse } = require('pdf-parse');
 const { findByBotAndName, createDocument, getDocumentsByBot, getDocumentById, deleteDocument } = require('../models/documentModel');
 const { addApiSource, getApiSourcesByBot, deleteApiSource } = require('../models/apiSourceModel');
+const vectorService = require('../services/vectorService');
 
 async function uploadFile(req, res) {
   try {
@@ -25,6 +27,23 @@ async function uploadFile(req, res) {
       });
     }
 
+    // Extraction du texte (uniquement pour les PDF)
+    let content = '';
+    if (req.file.mimetype === 'application/pdf') {
+      console.log('📄 Début de l\'extraction PDF...');
+      try {
+        const buffer = fs.readFileSync(req.file.path);
+        const parser = new PDFParse({ data: new Uint8Array(buffer) });
+        const result = await parser.getText();
+        content = result.text.replace(/\n+/g, ' ').trim();
+        console.log(`✅ Texte extrait et sauvegardé (${content.length} caractères).`);
+      } catch (pdfErr) {
+        // PDF scanné ou illisible — on continue sans crasher
+        console.warn(`⚠️ Impossible d'extraire le texte du PDF (${req.file.originalname}) :`, pdfErr.message);
+        content = '';
+      }
+    }
+
     // Enregistrement en base
     const document = await createDocument({
       botId,
@@ -32,7 +51,15 @@ async function uploadFile(req, res) {
       nomFichierGenere: req.file.filename,
       chemin: req.file.path,
       taille: req.file.size,
+      content,
     });
+
+    // Vectorisation RAG (asynchrone, ne bloque pas la réponse HTTP)
+    if (content.trim().length > 0) {
+      vectorService.processAndStoreDocument(document.id, content).catch((vecErr) => {
+        console.warn(`⚠️  Vectorisation échouée pour le document ${document.id} :`, vecErr.message);
+      });
+    }
 
     return res.status(201).json({
       success: true,
