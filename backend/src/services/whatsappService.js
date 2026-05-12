@@ -1,8 +1,12 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 const { pool } = require('../config/db');
 const vectorService = require('./vectorService');
+const agentService = require('./agentService');
+const { persistMessage, getHistory } = require('./historyService');
 
 /**
  * Map des clients actifs : botId (string) → { client, status }
@@ -31,6 +35,16 @@ async function initializeWhatsApp(botId, qrCallback) {
 
   // Réinitialise si un client existe déjà
   await destroyClient(key);
+
+  // Supprime le lockfile Chrome résiduel (laissé par un crash/arrêt brutal)
+  const sessionDir = path.join(__dirname, '..', '..', '.wwebjs_auth', `session-bot_${key}`);
+  const lockfilePath = path.join(sessionDir, 'lockfile');
+  try {
+    if (fs.existsSync(lockfilePath)) {
+      fs.unlinkSync(lockfilePath);
+      console.log(`🔓 Lockfile supprimé pour bot #${key}`);
+    }
+  } catch (_) { /* ignore — pas bloquant */ }
 
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: `bot_${key}` }),
@@ -74,6 +88,9 @@ async function initializeWhatsApp(botId, qrCallback) {
     if (msg.isGroupMsg || msg.from === 'status@broadcast') return;
 
     try {
+      // 0. Persister le message de l'utilisateur
+      await persistMessage(msg.from, key, 'user', msg.body);
+
       // 1. Récupérer la configuration globale Ollama
       const [settingRows] = await pool.execute(
         "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('ollama_url', 'ollama_default_model')"
@@ -103,42 +120,107 @@ async function initializeWhatsApp(botId, qrCallback) {
         retrievedContext = '';
       }
 
-      // 4. Court-circuit strict : le CODE refuse de répondre, sans appeler le LLM
-      //    Ne jamais déléguer cette responsabilité au modèle (risque d'hallucination garanti)
-      if (!allowGeneralKnowledge && !retrievedContext.trim()) {
+      // 3b. Sources API externes configurées pour ce bot
+      let apiContext = '';
+      try {
+        const [apiRows] = await pool.execute(
+          'SELECT url FROM api_sources WHERE bot_id = ? ORDER BY date_ajout DESC',
+          [key]
+        );
+        if (apiRows.length > 0) {
+          const apiResults = [];
+          for (const { url } of apiRows) {
+            try {
+              const isGoogleSheetsCsv =
+                url.includes('docs.google.com/spreadsheets') || url.includes('format=csv');
+              const isGoogleDocsTxt =
+                url.includes('docs.google.com/document') || url.includes('format=txt');
+
+              console.log(`🌐 Appel de l'API externe : ${url}`);
+              const resp = await axios.get(url, {
+                timeout: 5000,
+                responseType: (isGoogleSheetsCsv || isGoogleDocsTxt) ? 'text' : 'json',
+              });
+
+              let data;
+              if (isGoogleDocsTxt) {
+                // ── Google Docs TXT : injection brute sans parsing ───────
+                data = typeof resp.data === 'string' ? resp.data.trim() : String(resp.data).trim();
+                console.log(`🔵 Synchronisation Google Docs réussie (${data.length} caractères)`);
+              } else if (isGoogleSheetsCsv) {
+                // ── Parsing CSV dynamique ────────────────────────────────
+                const rawText = typeof resp.data === 'string' ? resp.data : String(resp.data);
+                const lines = rawText.split(/\r?\n/).filter(l => l.trim() !== '');
+                if (lines.length < 2) {
+                  data = rawText; // pas d'en-têtes détectables, on envoie brut
+                } else {
+                  const delimiter = lines[0].includes(';') ? ';' : ',';
+                  const splitCsv = (line) => {
+                    const result = [];
+                    let current = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < line.length; i++) {
+                      const ch = line[i];
+                      if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+                        else { inQuotes = !inQuotes; }
+                      } else if (ch === delimiter && !inQuotes) {
+                        result.push(current.trim()); current = '';
+                      } else { current += ch; }
+                    }
+                    result.push(current.trim());
+                    return result;
+                  };
+                  const headers = splitCsv(lines[0]);
+                  const rows = [];
+                  for (let i = 1; i < lines.length; i++) {
+                    const values = splitCsv(lines[i]);
+                    const pairs = headers
+                      .map((h, idx) => `${h}: ${values[idx] !== undefined ? values[idx] : ''}`)
+                      .join(', ');
+                    rows.push(pairs);
+                  }
+                  data = rows.join('\n');
+                  console.log(`🟢 Synchronisation Google Sheets réussie (${rows.length} ligne(s), délimiteur '${delimiter}')`);
+                }
+              } else {
+                data = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+                console.log(`✅ Appel de l'API externe réussi : ${url}`);
+              }
+
+              apiResults.push(`[Source: ${url}]\n${data}`);
+            } catch (apiErr) {
+              console.warn(`⚠️  API externe échouée (${url}) :`, apiErr.message);
+            }
+          }
+          if (apiResults.length > 0) {
+            apiContext = apiResults.join('\n\n');
+          }
+        }
+      } catch (apiLookupErr) {
+        console.warn('⚠️  Récupération des sources API échouée :', apiLookupErr.message);
+      }
+
+      // 4. Court-circuit strict : refuser uniquement si aucun contexte du tout
+      if (!allowGeneralKnowledge && !retrievedContext.trim() && !apiContext.trim()) {
         await msg.reply('Désolé, je ne dispose pas de cette information. Puis-je vous aider autrement ?');
         return;
       }
 
-      // 5. Construction du system prompt
-      let systemPrompt;
-      if (!allowGeneralKnowledge) {
-        systemPrompt =
-          "Tu es un assistant strict. Tu dois répondre UNIQUEMENT en utilisant le contexte fourni. " +
-          "Si la réponse n'est pas dans le contexte, dis EXACTEMENT " +
-          "'Désolé, je ne dispose pas de cette information dans ma base de connaissances.'. " +
-          "N'invente rien. Contexte: " + retrievedContext;
-      } else {
-        systemPrompt =
-          "Tu es un assistant utile. Utilise le contexte fourni en priorité. " +
-          "Si l'information n'y est pas, utilise tes connaissances générales pour aider l'utilisateur. " +
-          "Contexte: " + retrievedContext;
-      }
+      // 5. Historique de conversation (mémoire à court terme, isolée par bot)
+      const historyMessages = await getHistory(msg.from, key, 6);
+      const chatHistory = historyMessages
+        .map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.content}`)
+        .join('\n');
 
-      // 5. Appel à Ollama
-      const ollamaResponse = await axios.post(
-        `${ollamaUrl}/api/generate`,
-        {
-          model: defaultModel,
-          prompt: msg.body,
-          system: systemPrompt,
-          stream: false,
-        },
-        { timeout: 120000 }
-      );
+      // 6. Appel à l'agent (llama3.2 + Tavily si allowGeneralKnowledge)
+      const finalResponse = await agentService.askAgent(msg.body, retrievedContext, allowGeneralKnowledge, apiContext, chatHistory);
 
-      // 6. Répondre sur WhatsApp
-      await msg.reply(ollamaResponse.data.response);
+      // 7. Persister la réponse de l'assistant
+      await persistMessage(msg.from, key, 'assistant', finalResponse);
+
+      // 8. Répondre sur WhatsApp
+      await msg.reply(finalResponse);
 
     } catch (error) {
       console.error(`Erreur traitement message bot #${key} :`, error.message);

@@ -311,6 +311,16 @@
   text-overflow: ellipsis;
 }
 
+.kb-doc-name--clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.kb-doc-name--clickable:hover {
+  color: #0284c7;
+  text-decoration: underline;
+}
+
 .kb-doc-link {
   display: block;
   color: #003882;

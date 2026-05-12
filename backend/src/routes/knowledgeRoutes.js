@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
-const { uploadFile, getDocuments, deleteFile, addApi, getApis, deleteApi } = require('../controllers/knowledgeController');
+const { uploadFile, getDocuments, deleteFile, viewFile, addApi, getApis, deleteApi } = require('../controllers/knowledgeController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 // POST /api/knowledge/upload
@@ -9,6 +9,9 @@ router.post('/upload', upload.single('file'), uploadFile);
 
 // GET /api/knowledge/:botId/documents
 router.get('/:botId/documents', getDocuments);
+
+// GET /api/knowledge/documents/:docId/view
+router.get('/documents/:docId/view', viewFile);
 
 // DELETE /api/knowledge/:botId/documents/:docId
 router.delete('/:botId/documents/:docId', authMiddleware, deleteFile);

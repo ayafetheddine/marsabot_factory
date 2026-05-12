@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { addBotApiSource, deleteBotApiSource, deleteBotDocument, getBotApiSources, getBotDocuments, getBots, uploadKnowledgeFile } from '../services/api';
+import { addBotApiSource, deleteBotApiSource, deleteBotDocument, getBotApiSources, getBotDocuments, getBots, uploadKnowledgeFile, viewBotDocument } from '../services/api';
 import './KnowledgeBase.css';
 
 /* ── Icône nuage upload ── */
@@ -418,7 +418,22 @@ const handleAddApiSource = async () => {
                 <li key={`doc-${doc.id}`} className="kb-doc-card">
                   <DocIcon type={type} />
                   <div className="kb-doc-info">
-                    <p className="kb-doc-name">{doc.nom_original}</p>
+                    <p
+                      className="kb-doc-name kb-doc-name--clickable"
+                      title="Cliquer pour visualiser"
+                      onClick={async () => {
+                        try {
+                          const response = await viewBotDocument(doc.id);
+                          const fileBlob = new Blob([response.data], { type: response.headers['content-type'] });
+                          const fileURL = URL.createObjectURL(fileBlob);
+                          window.open(fileURL, '_blank');
+                        } catch (err) {
+                          toast.error('Impossible d\'ouvrir le fichier.');
+                        }
+                      }}
+                    >
+                      {doc.nom_original}
+                    </p>
                     <p className="kb-doc-meta">Ajouté le {formatDate(doc.date_ajout)} · {formatSize(doc.taille)}</p>
                   </div>
                   <button
@@ -439,7 +454,13 @@ const handleAddApiSource = async () => {
                   <IconGlobe />
                 </div>
                 <div className="kb-doc-info">
-                  <p className="kb-doc-name">{source.url}</p>
+                  <p
+                    className="kb-doc-name kb-doc-name--clickable"
+                    title="Ouvrir l'API dans un nouvel onglet"
+                    onClick={() => window.open(source.url, '_blank', 'noopener,noreferrer')}
+                  >
+                    {source.url}
+                  </p>
                   <p className="kb-doc-meta">Connectée le {formatDate(source.date_ajout)}</p>
                 </div>
                 <button

@@ -8,6 +8,7 @@ const { testConnection } = require('./config/db');
 const { initApiSourceTable } = require('./models/apiSourceModel');
 const { initSettingsTable } = require('./models/settingModel');
 const { initDocumentsTable, initChunksTable } = require('./models/documentModel');
+const { initMessagesTable } = require('./models/messageModel');
 const whatsappService = require('./services/whatsappService');
 const botRoutes = require('./routes/botRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -56,5 +57,6 @@ app.listen(PORT, async () => {
   await initSettingsTable();
   await initDocumentsTable();
   await initChunksTable();
+  await initMessagesTable();
   await whatsappService.initializeActiveBots();
 });

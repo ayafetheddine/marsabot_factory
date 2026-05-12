@@ -4,6 +4,52 @@ const { findByBotAndName, createDocument, getDocumentsByBot, getDocumentById, de
 const { addApiSource, getApiSourcesByBot, deleteApiSource } = require('../models/apiSourceModel');
 const vectorService = require('../services/vectorService');
 
+/**
+ * Parse un fichier CSV et retourne une chaîne de texte formatée clé:valeur
+ * (même format que LangChain CSVLoader), une ligne par enregistrement.
+ * Gère les champs entre guillemets contenant des virgules.
+ */
+function parseCsvToText(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const lines = raw.split(/\r?\n/).filter(line => line.trim() !== '');
+  if (lines.length < 2) return raw; // pas d'en-têtes détectables
+
+  // Détection automatique du délimiteur (Excel FR → ';', standard → ',')
+  const delimiter = lines[0].includes(';') ? ';' : ',';
+  console.log(`📊 Délimiteur CSV détecté : '${delimiter}'`);
+
+  // Découpe une ligne CSV en tenant compte des guillemets
+  const splitCsvLine = (line) => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } // guillemet échappé
+        else { inQuotes = !inQuotes; }
+      } else if (ch === delimiter && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const headers = splitCsvLine(lines[0]);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = splitCsvLine(lines[i]);
+    const pairs = headers.map((h, idx) => `${h}: ${values[idx] !== undefined ? values[idx] : ''}`).join(', ');
+    rows.push(pairs);
+  }
+  console.log(`📊 CSV parsé : ${rows.length} ligne(s), ${headers.length} colonne(s) : [${headers.join(', ')}]`);
+  return rows.join('\n');
+}
+
 async function uploadFile(req, res) {
   try {
     if (!req.file) {
@@ -27,10 +73,12 @@ async function uploadFile(req, res) {
       });
     }
 
-    // Extraction du texte (uniquement pour les PDF)
+    // Extraction du texte selon le type de fichier
     let content = '';
-    if (req.file.mimetype === 'application/pdf') {
-      console.log('📄 Début de l\'extraction PDF...');
+    const ext = req.file.originalname.split('.').pop().toLowerCase();
+
+    if (req.file.mimetype === 'application/pdf' || ext === 'pdf') {
+      console.log('\ud83d\udcc4 Début de l\'extraction PDF...');
       try {
         const buffer = fs.readFileSync(req.file.path);
         const parser = new PDFParse({ data: new Uint8Array(buffer) });
@@ -38,8 +86,25 @@ async function uploadFile(req, res) {
         content = result.text.replace(/\n+/g, ' ').trim();
         console.log(`✅ Texte extrait et sauvegardé (${content.length} caractères).`);
       } catch (pdfErr) {
-        // PDF scanné ou illisible — on continue sans crasher
         console.warn(`⚠️ Impossible d'extraire le texte du PDF (${req.file.originalname}) :`, pdfErr.message);
+        content = '';
+      }
+    } else if (ext === 'txt') {
+      console.log('\ud83d\udcdd Extraction TXT...');
+      try {
+        content = fs.readFileSync(req.file.path, 'utf8').trim();
+        console.log(`✅ TXT lu (${content.length} caractères).`);
+      } catch (txtErr) {
+        console.warn(`⚠️ Lecture TXT échouée (${req.file.originalname}) :`, txtErr.message);
+        content = '';
+      }
+    } else if (ext === 'csv') {
+      console.log('\ud83d\udcca Extraction CSV...');
+      try {
+        content = parseCsvToText(req.file.path);
+        console.log(`✅ CSV traité (${content.length} caractères).`);
+      } catch (csvErr) {
+        console.warn(`⚠️ Parsing CSV échoué (${req.file.originalname}) :`, csvErr.message);
         content = '';
       }
     }
@@ -149,5 +214,23 @@ async function deleteApi(req, res) {
   }
 }
 
-module.exports = { uploadFile, getDocuments, deleteFile, addApi, getApis, deleteApi };
+async function viewFile(req, res) {
+  try {
+    const { docId } = req.params;
+    const document = await getDocumentById(docId);
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document introuvable.' });
+    }
+    // chemin est un chemin absolu enregistré au moment de l'upload
+    if (!fs.existsSync(document.chemin)) {
+      return res.status(404).json({ success: false, message: 'Fichier physique introuvable sur le serveur.' });
+    }
+    return res.sendFile(document.chemin);
+  } catch (error) {
+    console.error('Erreur viewFile :', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur lors de la lecture du fichier.' });
+  }
+}
+
+module.exports = { uploadFile, getDocuments, deleteFile, viewFile, addApi, getApis, deleteApi };
 

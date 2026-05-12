@@ -25,11 +25,11 @@ function Settings() {
       .then(({ data }) => {
         const s = data.data || {};
         setOllamaUrl(s.ollama_url || 'http://localhost:11434');
-        setOllamaModel(s.ollama_default_model || 'phi3');
+        setOllamaModel(s.ollama_default_model || 'llama3.2');
       })
       .catch(() => {
         setOllamaUrl('http://localhost:11434');
-        setOllamaModel('phi3');
+        setOllamaModel('llama3.2');
       });
   }, []);
 
@@ -103,10 +103,10 @@ function Settings() {
             className="st-input"
             value={ollamaModel}
             onChange={(e) => setOllamaModel(e.target.value)}
-            placeholder="phi3"
+            placeholder="llama3.2"
             required
           />
-          <p className="st-input-hint">Nom du modèle tel qu'affiché par <code>ollama list</code> (ex : phi3, llama3, mistral)</p>
+          <p className="st-input-hint">Nom du modèle tel qu'affiché par <code>ollama list</code> (ex : llama3.2, mistral, phi3)</p>
         </div>
 
         <div className="st-actions">
