@@ -1,5 +1,5 @@
 const { pool } = require('../config/db');
-const { initializeWhatsApp } = require('../services/whatsappService');
+const { initializeWhatsApp, getClientStatus } = require('../services/whatsappService');
 
 // Créer un nouveau bot
 async function createBot(req, res) {
@@ -37,13 +37,23 @@ async function getAllBots(_req, res) {
 function generateQrCode(req, res) {
   const { botId } = req.params;
 
+  // Si le bot est déjà connecté, inutile de relancer Puppeteer
+  const currentStatus = getClientStatus(botId);
+  if (currentStatus === 'ready') {
+    return res.status(200).json({
+      success: false,
+      alreadyConnected: true,
+      message: 'Ce bot est déjà connecté à WhatsApp. Aucun QR Code n\'est nécessaire.',
+    });
+  }
+
   const TIMEOUT_MS = 60000; // 60s max pour que Puppeteer démarre et génère le QR
 
   const timer = setTimeout(() => {
     if (!res.headersSent) {
       res.status(504).json({
         success: false,
-        message: 'Timeout (60s) : Puppeteer n\'a pas pu générer le QR. Vérifiez que Chrome est accessible.',
+        message: 'Le bot est peut-être déjà connecté (session WhatsApp active). Rechargez la page et vérifiez son statut.',
       });
     }
   }, TIMEOUT_MS);

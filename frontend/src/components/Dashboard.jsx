@@ -54,10 +54,14 @@ function Dashboard() {
   }, []);
 
   const handleGenerateQr = async (bot) => {
-    setQrModal({ open: true, loading: true, botId: bot.id, botName: bot.nom, qrBase64: null, error: null });
+    setQrModal({ open: true, loading: true, botId: bot.id, botName: bot.nom, qrBase64: null, error: null, alreadyConnected: false });
     try {
       const { data } = await getWhatsAppQrCode(bot.id);
-      setQrModal((prev) => ({ ...prev, loading: false, qrBase64: data.qrCodeBase64 }));
+      if (data.alreadyConnected) {
+        setQrModal((prev) => ({ ...prev, loading: false, alreadyConnected: true }));
+      } else {
+        setQrModal((prev) => ({ ...prev, loading: false, qrBase64: data.qrCodeBase64 }));
+      }
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Impossible de générer le QR Code.';
       setQrModal((prev) => ({ ...prev, loading: false, error: message }));
@@ -325,6 +329,13 @@ function Dashboard() {
                   <div className="qr-spinner" />
                   <p>Démarrage de l'instance WhatsApp…</p>
                   <p className="qr-loading-hint">Cela peut prendre jusqu'à 60 secondes.</p>
+                </div>
+              )}
+
+              {qrModal.alreadyConnected && (
+                <div className="qr-info">
+                  <p>✅ Ce bot est déjà connecté à WhatsApp.</p>
+                  <p className="qr-loading-hint">Aucun QR Code n'est nécessaire. Le bot est actif et opérationnel.</p>
                 </div>
               )}
 

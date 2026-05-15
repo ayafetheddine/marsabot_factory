@@ -208,7 +208,7 @@ async function initializeWhatsApp(botId, qrCallback) {
       }
 
       // 5. Historique de conversation (mémoire à court terme, isolée par bot)
-      const historyMessages = await getHistory(msg.from, key, 6);
+      const historyMessages = await getHistory(msg.from, key, 10);
       const chatHistory = historyMessages
         .map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.content}`)
         .join('\n');
