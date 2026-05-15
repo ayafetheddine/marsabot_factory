@@ -1,0 +1,65 @@
+services:
+
+  # ── Base de données MySQL ────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: marsabot_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-marsabot_db}
+      MYSQL_USER: ${DB_USER:-marsabot}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-rootpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend Node.js ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marsabot_backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_HOST: mysql
+      DB_USER: ${DB_USER:-marsabot}
+      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      DB_NAME: ${DB_NAME:-marsabot_db}
+      JWT_SECRET: ${JWT_SECRET}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persister les sessions WhatsApp et les fichiers uploadés
+      - ./backend/.wwebjs_auth:/app/.wwebjs_auth
+      - ./backend/uploads:/app/uploads
+    extra_hosts:
+      # Permet au backend d'accéder à Ollama sur la machine hôte
+      - "host.docker.internal:host-gateway"
+
+  # ── Frontend React + Nginx ───────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: marsabot_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  mysql_data:
